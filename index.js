@@ -1,67 +1,81 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const { google } = require("googleapis");
+import express from "express";
+import bodyParser from "body-parser";
+import { google } from "googleapis";
 
 const app = express();
 app.use(bodyParser.json());
 
-// === Google Sheets Setup ===
-const keys = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
-const client = new google.auth.JWT(
-  keys.client_email,
-  null,
-  keys.private_key,
-  ["https://www.googleapis.com/auth/spreadsheets"]
-);
-const sheets = google.sheets({ version: "v4", auth: client });
+// Authenticate Google Sheets API using service account
+const auth = new google.auth.GoogleAuth({
+  credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT),
+  scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+});
 
-// Temporary merchant → sheet mapping (edit this for each merchant)
-const merchantSheets = {
-  "yourstore.myshopify.com": "YOUR_SHEET_ID_HERE"
-};
+const sheets = google.sheets({ version: "v4", auth });
 
-// === Shopify Webhook: Orders Create ===
+// ----------------------
+// 🔹 Helper: Get Sheet ID for a Shopify store
+// ----------------------
+function getSheetIdForStore(shopDomain) {
+  // Shopify sends domains like "client-a.myshopify.com"
+  // We need to turn this into the ENV VAR key format
+  const key = "SHEET_ID_" + shopDomain.replace(/\./g, "_").toUpperCase();
+  return process.env[key];
+}
+
+// ----------------------
+// 🔹 Shopify Order Webhook
+// ----------------------
 app.post("/webhook/orders", async (req, res) => {
-  try {
-    const shop = req.headers["x-shopify-shop-domain"];
-    const order = req.body;
+  const shopDomain = req.get("x-shopify-shop-domain");
+  const sheetId = getSheetIdForStore(shopDomain);
 
-    const sheetId = merchantSheets[shop];
-    if (!sheetId) {
-      console.log("No sheet mapped for", shop);
-      return res.status(200).send("No sheet mapped");
-    }
+  if (!sheetId) {
+    console.error(`❌ No sheet mapped for store: ${shopDomain}`);
+    return res.status(400).send("No sheet mapped for this store");
+  }
+
+  try {
+    const order = req.body;
 
     const values = [
       [
         order.id,
-        order.customer?.first_name + " " + order.customer?.last_name,
-        order.shipping_address?.address1,
-        order.shipping_address?.phone,
+        order.customer?.first_name || "",
+        order.customer?.last_name || "",
+        order.customer?.email || "",
+        order.shipping_address?.phone || "",
         order.total_price,
         order.financial_status,
-        new Date().toISOString()
-      ]
+        new Date().toISOString(),
+      ],
     ];
 
     await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
       range: "Orders!A:G",
       valueInputOption: "USER_ENTERED",
-      requestBody: { values }
+      requestBody: { values },
     });
 
-    console.log("Order written to sheet:", order.id);
+    console.log(`✅ Order ${order.id} written to sheet for ${shopDomain}`);
     res.status(200).send("OK");
   } catch (err) {
-    console.error("Error writing order:", err);
+    console.error("❌ Error writing order:", err);
     res.status(500).send("Error");
   }
 });
 
-// Default route
+// ----------------------
+// 🔹 Default Route
+// ----------------------
 app.get("/", (req, res) => {
-  res.send("OK Logistics App is running ✅");
+  res.send("✅ Logistics App is running with multi-client mapping");
 });
 
-app.listen(3000, () => console.log("App running on port 3000"));
+// ----------------------
+// 🔹 Start Server
+// ----------------------
+app.listen(3000, () => {
+  console.log("🚀 App running on port 3000");
+});
