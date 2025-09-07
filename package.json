@@ -1,14 +1,17 @@
 {
-  "name": "ok-logistics-app",
+  "name": "logistics-app",
   "version": "1.0.0",
+  "description": "Shopify → Google Sheets integration",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "body-parser": "^1.20.0",
-    "express": "^4.18.0",
-    "googleapis": "^118.0.0"
+    "express": "^4.18.2",
+    "googleapis": "^118.0.0",
+    "body-parser": "^1.20.2"
   }
 }
+
+
