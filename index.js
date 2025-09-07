@@ -1,6 +1,6 @@
-import express from "express";
-import bodyParser from "body-parser";
-import { google } from "googleapis";
+const express = require("express");
+const bodyParser = require("body-parser");
+const { google } = require("googleapis");
 
 const app = express();
 app.use(bodyParser.json());
@@ -94,6 +94,7 @@ app.get("/", (req, res) => {
 app.listen(3000, () => {
   console.log("🚀 App running on port 3000");
 });
+
 
 
 
