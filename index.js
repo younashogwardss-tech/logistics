@@ -41,7 +41,9 @@ console.log(
   "Looking for env var:",
   `SHEET_ID_${shopDomain.replace(/[^a-zA-Z0-9]/g, "_").toUpperCase()}`
 );
-  const sheetId = getSheetIdForStore(shopDomain);
+  const envKey = `SHEET_ID_${shopDomain.replace(/[^a-zA-Z0-9]/g, "_").toUpperCase()}`;
+const sheetId = process.env[envKey];
+
 
   if (!sheetId) {
     console.error(`❌ No sheet mapped for store: ${shopDomain}`);
@@ -92,6 +94,7 @@ app.get("/", (req, res) => {
 app.listen(3000, () => {
   console.log("🚀 App running on port 3000");
 });
+
 
 
 
