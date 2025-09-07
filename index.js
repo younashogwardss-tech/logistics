@@ -28,6 +28,9 @@ function getSheetIdForStore(shopDomain) {
 // ----------------------
 app.post("/webhook/orders", async (req, res) => {
   const shopDomain = req.get("x-shopify-shop-domain");
+    console.log("Store domain received:", shopDomain);
+  console.log("Available keys:", Object.keys(process.env));
+
   // 🔍 Debug logging
 console.log("Store domain received:", shopDomain);
 console.log(
@@ -85,4 +88,5 @@ app.get("/", (req, res) => {
 app.listen(3000, () => {
   console.log("🚀 App running on port 3000");
 });
+
 
