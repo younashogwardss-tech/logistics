@@ -30,6 +30,10 @@ app.post("/webhook/orders", async (req, res) => {
   const shopDomain = req.get("x-shopify-shop-domain");
     console.log("Store domain received:", shopDomain);
   console.log("Available keys:", Object.keys(process.env));
+  const envKey = `SHEET_ID_${shopDomain.replace(/[^a-zA-Z0-9]/g, "_").toUpperCase()}`;
+console.log("Looking for envKey:", envKey);
+console.log("process.env[envKey] =", process.env[envKey]);
+
 
   // 🔍 Debug logging
 console.log("Store domain received:", shopDomain);
@@ -88,5 +92,6 @@ app.get("/", (req, res) => {
 app.listen(3000, () => {
   console.log("🚀 App running on port 3000");
 });
+
 
 
