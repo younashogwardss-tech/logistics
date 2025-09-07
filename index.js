@@ -28,6 +28,12 @@ function getSheetIdForStore(shopDomain) {
 // ----------------------
 app.post("/webhook/orders", async (req, res) => {
   const shopDomain = req.get("x-shopify-shop-domain");
+  // 🔍 Debug logging
+console.log("Store domain received:", shopDomain);
+console.log(
+  "Looking for env var:",
+  `SHEET_ID_${shopDomain.replace(/[^a-zA-Z0-9]/g, "_").toUpperCase()}`
+);
   const sheetId = getSheetIdForStore(shopDomain);
 
   if (!sheetId) {
@@ -79,3 +85,4 @@ app.get("/", (req, res) => {
 app.listen(3000, () => {
   console.log("🚀 App running on port 3000");
 });
+
